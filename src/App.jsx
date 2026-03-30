@@ -1,155 +1,95 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const MonacoEditor = ({ height, language, value, onChange, theme, onMount, options }) => {
-  const [Editor, setEditor] = useState(null)
-  const editorRef = useRef(null)
-  
-  useEffect(() => {
-    import('@monaco-editor/react').then((mod) => {
-      setEditor(() => mod.default)
-    }).catch(() => {
-      console.error('Failed to load Monaco Editor')
-    })
-  }, [])
-  
-  if (!Editor) {
-    return (
-      <div style={{ height, background: '#1e1e1e', padding: 16 }}>
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: '100%',
-            height: 'calc(100% - 32px)',
-            background: '#1e1e1e',
-            color: '#d4d4d4',
-            border: 'none',
-            outline: 'none',
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 14,
-            resize: 'none',
-          }}
-        />
-      </div>
-    )
-  }
-  
-  return (
-    <Editor
-      height={height}
-      language={language}
-      value={value}
-      onChange={onChange}
-      theme={theme}
-      onMount={onMount}
-      options={options}
-    />
-  )
-}
-import { 
-  Code2, FileCode, Terminal, MessageSquare, Settings, 
-  ChevronRight, X, Plus, Folder, File, Play, Sparkles,
-  Bot, Zap, Shield, Cpu, Layers, XCircle,
-  Send, Copy, Check, ChevronDown, Download,
-  GitBranch, Link, ArrowRight, Command,
-  Maximize2, Minimize2, RotateCcw, Search, PenTool,
-  Globe, Users, Wand2, Layout, Database, Cloud,
-  Smartphone, Monitor, Wifi, Lock, Bug, Rocket, Star,
-  GitPullRequest, Infinity, Box, ExternalLink, Workflow, Plug, Puzzle,
-  Server, HardDrive, Moon, Sun, Package, AppWindow, Code,
-  TerminalIcon, FileJson, FolderOpen, SearchCode, Mic, Image,
-  BookOpen, LifeBuoy, MessageCircle, Video, Mail, Webhook, Share2
-} from 'lucide-react'
 import './App.css'
 
-const AI_MODELS = {
-  cloud: [
-    { id: 'openai', name: 'OpenAI', icon: '🤖', color: '#10A37F', description: 'GPT-4o, GPT-4, GPT-3.5', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1-preview', 'o1-mini'] },
-    { id: 'anthropic', name: 'Anthropic', icon: '🧠', color: '#D97757', description: 'Claude 3.5 Sonnet, Opus, Haiku', models: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3.5-haiku'] },
-    { id: 'google', name: 'Google AI', icon: '🔷', color: '#4285F4', description: 'Gemini 1.5 Pro, Flash', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-2.0'] },
-    { id: 'meta', name: 'Meta AI', icon: '🌐', color: '#0668E1', description: 'Llama 3.1, 3, 2', models: ['llama-3.1-405b', 'llama-3.1-70b', 'llama-3-70b', 'llama-3.2'] },
-    { id: 'mistral', name: 'Mistral', icon: '🌪️', color: '#FF7000', description: 'Mixtral, Codestral', models: ['mixtral-8x7b', 'codestral-2501', 'mistral-small'] },
-    { id: 'cohere', name: 'Cohere', icon: '🔗', color: '#39594D', description: 'Command R+', models: ['command-r-plus', 'command-r', 'c4ai-command'] },
-    { id: 'azure', name: 'Azure AI', icon: '☁️', color: '#0078D4', description: 'Azure OpenAI Service', models: ['gpt-4-azure', 'gpt-35-turbo-azure'] },
-    { id: 'aws', name: 'AWS Bedrock', icon: '🟠', color: '#FF9900', description: 'Amazon Bedrock AI', models: ['claude-3-bedrock', 'titan', 'llama-3-bedrock'] },
-    { id: 'huggingface', name: 'Hugging Face', icon: '🤗', color: '#FFD21E', description: 'Open source models', models: ['falcon-180b', 'mistral-7b', 'codeLlama'] },
-    { id: 'groq', name: 'Groq', icon: '⚡', color: '#2DD4BF', description: 'Fast inference', models: ['llama-3.1-70b-groq', 'mixtral-8x7b-groq'] },
-    { id: 'perplexity', name: 'Perplexity', icon: '🔮', color: '#6366F1', description: 'AI search', models: ['pplx-70b', 'pplx-7b'] },
-    { id: 'anyscale', name: 'Anyscale', icon: '🎯', color: '#8B5CF6', description: 'Production LLMs', models: ['llama-3-70b-any'] },
-  ],
-  local: [
-    { id: 'ollama', name: 'Ollama', icon: '🐳', color: '#9012FE', description: 'Run 70+ models locally', models: ['llama3.3', 'qwen2.5', 'phi4', 'mistral', 'codellama', 'gemma2', 'phi3'] },
-    { id: 'lmstudio', name: 'LM Studio', icon: '💻', color: '#FF6B35', description: 'Desktop AI model runner', models: ['llama-3.3-70b', 'qwen-2.5-72b', 'phi-4', 'mistral-7b'] },
-    { id: 'llamafile', name: 'Llamafile', icon: '📄', color: '#FF4500', description: 'Single-file AI models', models: ['llama-3.1-8b', 'mistral-7b', 'phi-3-mini'] },
-    { id: 'textgen', name: 'Text Generation WebUI', icon: '🌍', color: '#FFB347', description: 'Web interface for LLMs', models: ['various'] },
-    { id: 'kobold', name: 'KoboldAI', icon: '🏰', color: '#7B68EE', description: 'AI storytelling platform', models: ['various'] },
-    { id: 'sillytavern', name: 'SillyTavern', icon: '🍺', color: '#00D4AA', description: 'Chat UI for local LLMs', models: ['various'] },
-    { id: 'llama.cpp', name: 'llama.cpp', icon: '⚙️', color: '#6B7280', description: 'Pure C++ inference', models: ['llama-3.1-8b', 'qwen-2.5-7b'] },
-  ],
-  mcp: [
-    { id: 'filesystem', name: 'Filesystem', icon: '📁', description: 'Read/write local files' },
-    { id: 'github', name: 'GitHub', icon: '🐙', description: 'Repo, PRs, issues, actions' },
-    { id: 'n8n', name: 'n8n', icon: '🔄', description: 'Workflow automation' },
-    { id: 'postgres', name: 'PostgreSQL', icon: '🐘', description: 'Database queries' },
-    { id: 'slack', name: 'Slack', icon: '💬', description: 'Team communication' },
-    { id: 'notion', name: 'Notion', icon: '📓', description: 'Workspace integration' },
-    { id: 'brave', name: 'Brave Search', icon: '🦁', description: 'Web search' },
-    { id: 'puppeteer', name: 'Puppeteer', icon: '🎭', description: 'Browser automation' },
-    { id: 'sqlite', name: 'SQLite', icon: '🗃️', description: 'Local database' },
-    { id: 'fetch', name: 'Fetch', icon: '🌐', description: 'HTTP requests' },
-    { id: 'sentry', name: 'Sentry', icon: '🐛', description: 'Error tracking' },
-    { id: 'vercel', name: 'Vercel', icon: '▲', description: 'Deployment' },
-    { id: 'jira', name: 'Jira', icon: '📋', description: 'Project management' },
-    { id: 'linear', name: 'Linear', icon: '📊', description: 'Issue tracking' },
-    { id: 'discord', name: 'Discord', icon: '🎮', description: 'Bot integration' },
-    { id: 'figma', name: 'Figma', icon: '🎨', description: 'Design files' },
-    { id: 'jina', name: 'Jina AI', icon: '📚', description: 'Web scraping' },
-    { id: 'airtable', name: 'Airtable', icon: '📗', description: 'Spreadsheet API' },
-    { id: 'make', name: 'Make', icon: '🔧', description: 'Automation platform' },
-    { id: 'zapier', name: 'Zapier', icon: '⚡', description: 'No-code automation' },
-    { id: 'telegram', name: 'Telegram', icon: '✈️', description: 'Bot messaging' },
-  ]
-}
-
-const AI_AGENTS = [
-  { id: 'openai', name: 'OpenAI', icon: '🤖', color: '#79C0FF', description: 'GPT-4 powered coding assistant' },
-  { id: 'chatgpt', name: 'ChatGPT', icon: '💬', color: '#FF7EB6', description: 'Natural language code generation' },
-  { id: 'claude', name: 'Claude', icon: '🧠', color: '#A78BFA', description: 'Anthropic Claude for complex reasoning' },
-  { id: 'codex', name: 'Codex', icon: '⚡', color: '#7EE787', description: 'Specialized code generation model' },
-]
-
-const SAMPLE_PROMPTS = [
-  "Build a task management app with drag and drop",
-  "Create a real-time chat application",
-  "Make a portfolio website with dark mode",
-  "Build an e-commerce checkout flow",
-]
-
-const PROMPT_RESPONSES = {
-  "Build a task management app with drag and drop": {
-    files: {
-      'src/App.jsx': { type: 'file', language: 'javascript', content: "import { useState } from 'react';\nimport { DndProvider } from 'react-dnd';\nimport { HTML5Backend } from 'react-dnd-html5-backend';\nimport TaskBoard from './components/TaskBoard';\n\nfunction App() {\n  const [tasks, setTasks] = useState([\n    { id: 1, title: 'Design UI', status: 'todo' },\n    { id: 2, title: 'Implement drag & drop', status: 'progress' },\n  ]);\n\n  const moveTask = (id, newStatus) => {\n    setTasks(tasks.map(t => t.id === id ? { ...t, status: newStatus } : t));\n  };\n\n  return (\n    <DndProvider backend={HTML5Backend}>\n      <div className=\"app\">\n        <h1>Task Manager</h1>\n        <TaskBoard tasks={tasks} onMove={moveTask} />\n      </div>\n    </DndProvider>\n  );\n}\n\nexport default App;" },
-      'src/components/TaskBoard.jsx': { type: 'file', language: 'javascript', content: "import { useDrag, useDrop } from 'react-dnd';\n\nconst ItemTypes = { TASK: 'task' };\n\nexport const TaskCard = ({ task }) => {\n  const [{ isDragging }, drag] = useDrag(() => ({\n    type: ItemTypes.TASK,\n    item: { id: task.id },\n    collect: (monitor) => ({ isDragging: monitor.isDragging() }),\n  }));\n\n  return <div ref={drag}>{task.title}</div>;\n};\n\nexport default function TaskBoard({ tasks, onMove }) {\n  return (\n    <div className=\"board\">\n      {tasks.map(task => <TaskCard key={task.id} task={task} />)}\n    </div>\n  );\n}" },
-      'package.json': { type: 'file', language: 'json', content: "{\n  \"name\": \"task-manager\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"react\": \"^18.2.0\"\n  }\n}" }
-    }
+const SvgIcon = ({ name, size = 16, className = '' }) => {
+  const icons = {
+    code: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+    file: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+    terminal: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>,
+    settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+    plus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    folder: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+    play: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+    sparkles: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/></svg>,
+    bot: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>,
+    zap: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+    shield: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    cpu: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>,
+    layers: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+    send: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="20 6 9 17 4 12"/></svg>,
+    download: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    gitbranch: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>,
+    link: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+    arrowright: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+    command: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>,
+    maximize: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>,
+    minimize: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>,
+    rotate: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+    search: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    pen: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>,
+    globe: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    users: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    wand: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>,
+    layout: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>,
+    database: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+    cloud: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>,
+    smartphone: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+    monitor: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+    lock: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    bug: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M8 6V4a4 4 0 0 1 8 0v2"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4" y1="8" x2="2" y2="8"/><line x1="22" y1="8" x2="20" y2="8"/></svg>,
+    rocket: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>,
+    star: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+    gitrepo: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>,
+    infinity: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M12 12c-2-2.67-4-4-6-4s-4 1.33-4 4 4 4 6 4 4-1.33 4-4-2-2.67-4-4z"/><path d="M12 12c2-2.67 4-4 6-4s4 1.33 4 4-4 4-6 4-4-1.33-4-4z"/></svg>,
+    box: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+    external: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+    workflow: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+    plug: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>,
+    puzzle: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.452-.968-.85-.196-.466-.304-.971-.304-1.469 0-.509.114-.977.336-1.378l1.122-1.121a3.37 3.37 0 0 0-1.588-4.223z"/><path d="M11.912 7.589a3.39 3.39 0 0 0-2.055-1.284l-1.558-.259-.259-1.558a3.374 3.374 0 0 0-3.352-3.352l-1.558.259-.259 1.558a3.373 3.373 0 0 0-1.284 3.352l.259 1.558 1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.452-.968-.85-.196-.466-.304-.971-.304-1.469 0-.509.114-.977.336-1.378l1.122-1.121a3.37 3.37 0 0 0 1.588-4.223z"/></svg>,
+    server: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>,
+    harddrive: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>,
+    moon: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+    sun: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+    package: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+    appwindow: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>,
+    code2: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+    terminal2: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>,
+    filejson: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
+    folderopen: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M2 10h20"/></svg>,
+    searchcode: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="m8 11 3 3"/><path d="m8 16-3-3"/></svg>,
+    mic: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+    image: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+    book: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+    lifebuoy: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l4.24 4.24"/><path d="M14.83 9.17l4.24-4.24"/><path d="M14.83 14.83l4.24 4.24"/><path d="M4.93 19.07l4.24-4.24"/></svg>,
+    messagecircle: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>,
+    video: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
+    mail: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+    webhook: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M18 16.98h-5.99c-1.1 0-1.95.68-2.95 1.76"/><path d="M18 21h-6c-1.1 0-2-.9-2-2v-9c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v9"/><path d="M6 11.98H1c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h5"/><path d="M3 7.02h5.99c1.1 0 1.95-.68 2.95-1.76"/><path d="M3 3h6c1.1 0 2 .9 2 2v9c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2z"/></svg>,
+    chevronright: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="9 18 15 12 9 6"/></svg>,
+    x: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    copy: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+    share: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+    wifi: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>,
   }
+  return icons[name] || icons.code
 }
 
 const SAMPLE_FILES = {
   'src': {
     type: 'folder',
     children: {
-      'App.jsx': { type: 'file', language: 'javascript', content: "import React from 'react';\nimport { useState } from 'react';\nimport './App.css';\n\nfunction App() {\n  const [count, setCount] = useState(0);\n  \n  return (\n    <div className=\"app\">\n      <h1>Hello GUIDESOFT IDE</h1>\n      <p>Count: {count}</p>\n      <button onClick={() => setCount(c => c + 1)}>Increment</button>\n    </div>\n  );\n}\n\nexport default App;" },
-      'index.js': { type: 'file', language: 'javascript', content: "import React from 'react';\nimport ReactDOM from 'react-dom/client';\nimport App from './App';\n\nReactDOM.createRoot(document.getElementById('root')).render(<App />);" },
-      'utils.js': { type: 'file', language: 'javascript', content: "export const add = (a, b) => a + b;\nexport const multiply = (a, b) => a * b;" }
+      'App.jsx': { type: 'file', language: 'javascript', content: 'import React from "react";\nimport { useState } from "react";\nimport "./App.css";\n\nfunction App() {\n  const [count, setCount] = useState(0);\n  \n  return (\n    <div className="app">\n      <h1>Hello GSBuilder</h1>\n      <p>Count: {count}</p>\n      <button onClick={() => setCount(c => c + 1)}>Increment</button>\n    </div>\n  );\n}\n\nexport default App;' },
+      'index.js': { type: 'file', language: 'javascript', content: 'import React from "react";\nimport ReactDOM from "react-dom/client";\nimport App from "./App";\n\nReactDOM.createRoot(document.getElementById("root")).render(<App />);' },
+      'utils.js': { type: 'file', language: 'javascript', content: 'export const add = (a, b) => a + b;\nexport const multiply = (a, b) => a * b;' }
     }
   },
   'components': {
     type: 'folder',
     children: {
-      'Button.jsx': { type: 'file', language: 'javascript', content: "export const Button = ({ children, onClick }) => (\n  <button className=\"btn\" onClick={onClick}>{children}</button>\n);" },
-      'Card.jsx': { type: 'file', language: 'javascript', content: "export const Card = ({ title, children }) => (\n  <div className=\"card\"><h3>{title}</h3>{children}</div>\n);" }
+      'Button.jsx': { type: 'file', language: 'javascript', content: 'export const Button = ({ children, onClick }) => (\n  <button className="btn" onClick={onClick}>{children}</button>\n);' },
+      'Card.jsx': { type: 'file', language: 'javascript', content: 'export const Card = ({ title, children }) => (\n  <div className="card"><h3>{title}</h3>{children}</div>\n);' }
     }
   },
   'styles': {
@@ -158,32 +98,11 @@ const SAMPLE_FILES = {
       'main.css': { type: 'file', language: 'css', content: ':root { --primary: #00D9FF; }\nbody { margin: 0; font-family: Inter, sans-serif; }' }
     }
   },
-  'package.json': { type: 'file', language: 'json', content: '{"name": "my-app", "version": "1.0.0"}' }
+  'package.json': { type: 'file', language: 'json', content: '{"name": "gsbuilder-project", "version": "1.0.0"}' }
 }
 
-const VSCODE_FEATURES = [
-  { feature: 'AI Code Completion', gs: true, cursor: true, vscode: 'Partial', lovable: true, composable: true },
-  { feature: 'Multi-Agent AI', gs: true, cursor: true, vscode: false, lovable: true, composable: true },
-  { feature: 'Natural Language to Code', gs: true, cursor: true, vscode: false, lovable: true, composable: true },
-  { feature: 'Built-in Terminal', gs: true, cursor: true, vscode: true, lovable: 'Partial', composable: false },
-  { feature: 'Git Integration', gs: true, cursor: true, vscode: true, lovable: true, composable: true },
-  { feature: 'Debugging', gs: true, cursor: true, vscode: true, lovable: false, composable: false },
-  { feature: '50+ Language Support', gs: true, cursor: true, vscode: true, lovable: false, composable: false },
-  { feature: 'Extensions Marketplace', gs: true, cursor: true, vscode: true, lovable: false, composable: false },
-  { feature: 'Remote Development', gs: true, cursor: 'Partial', vscode: true, lovable: false, composable: false },
-  { feature: 'Live Collaboration', gs: true, cursor: 'Partial', vscode: false, lovable: true, composable: true },
-  { feature: 'One-Click Deploy', gs: true, cursor: false, vscode: false, lovable: true, composable: true },
-  { feature: 'Built-in Database', gs: true, cursor: false, vscode: false, lovable: true, composable: true },
-  { feature: 'MCP Integrations', gs: true, cursor: 'Partial', vscode: false, lovable: false, composable: true },
-  { feature: 'No-Code Workflows', gs: true, cursor: false, vscode: false, lovable: true, composable: true },
-  { feature: 'Local AI Models', gs: true, cursor: false, vscode: false, lovable: false, composable: false },
-]
-
-function LandingPage({ onEnterIDE, onTryPrompt }) {
+function LandingPage({ onEnterIDE }) {
   const [scrolled, setScrolled] = useState(false)
-  const [prompt, setPrompt] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [activeModelTab, setActiveModelTab] = useState('cloud')
   
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -191,34 +110,22 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handlePromptSubmit = (e) => {
-    e.preventDefault()
-    if (prompt.trim()) {
-      setIsGenerating(true)
-      setTimeout(() => {
-        onTryPrompt(prompt)
-        setIsGenerating(false)
-      }, 2000)
-    }
-  }
-
   return (
     <div className="landing">
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-logo">
-          <Sparkles className="logo-icon" />
-          <span>GUIDESOFT</span>
+          <SvgIcon name="code" size={22} />
+          <span>GSBuilder</span>
         </div>
         <div className="nav-links">
           <a href="#features">Features</a>
-          <a href="#models">AI Models</a>
-          <a href="#mcp">MCP</a>
-          <a href="#compare">Compare</a>
+          <a href="#templates">Templates</a>
           <a href="#pricing">Pricing</a>
+          <a href="#docs">Docs</a>
         </div>
         <div className="nav-actions">
-          <button className="btn-ghost">Sign In</button>
-          <button className="btn-primary" onClick={onEnterIDE}>Get Started</button>
+          <button className="btn-ghost">Log In</button>
+          <button className="btn-primary" onClick={onEnterIDE}>Sign Up Free</button>
         </div>
       </nav>
 
@@ -229,51 +136,22 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <span className="badge-new">🔥 All-in-One AI Platform</span>
             <h1 className="hero-title">
-              Code, Build, Deploy
-              <span className="gradient-text"> with AI</span>
+              Build full-stack apps
+              <span className="gradient-text"> in your browser</span>
             </h1>
             <p className="hero-subtitle">
-              The most powerful AI IDE with 100+ models (Cloud & Local), 200+ MCP integrations, 
-              No-code workflows, real-time collaboration, debugger, and GitHub sync — all in one place.
+              A powerful cloud IDE that runs in your browser. No setup required. 
+              Code, run, and deploy directly from your browser.
             </p>
-            
-            <form className="prompt-box" onSubmit={handlePromptSubmit}>
-              <Wand2 className="prompt-icon" />
-              <input 
-                type="text" 
-                placeholder="Describe what you want to build... (e.g., 'Build a task manager with drag and drop')"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-              <button type="submit" className="prompt-btn" disabled={isGenerating}>
-                {isGenerating ? (
-                  <span className="loading-dots">Building<span>.</span><span>.</span><span>.</span></span>
-                ) : (
-                  <>
-                    Build <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="quick-prompts">
-              {SAMPLE_PROMPTS.map((p, i) => (
-                <button key={i} className="quick-prompt" onClick={() => { setPrompt(p); onTryPrompt(p); }}>
-                  {p}
-                </button>
-              ))}
-            </div>
-
             <div className="hero-actions">
               <button className="btn-primary btn-large" onClick={onEnterIDE}>
-                <Download size={20} />
-                Download for Free
+                <SvgIcon name="play" size={18} />
+                Start Coding
               </button>
               <button className="btn-ghost btn-large">
-                <Command size={20} />
-                VS Code Extension
+                <SvgIcon name="external" size={18} />
+                View Templates
               </button>
             </div>
           </motion.div>
@@ -285,42 +163,34 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="ai-chat-preview">
-            <div className="chat-header">
-              <Bot size={18} />
-              <span>AI Assistant</span>
-              <span className="online-dot"></span>
+          <div className="ide-preview">
+            <div className="preview-header">
+              <div className="preview-dots">
+                <span className="dot red"></span>
+                <span className="dot yellow"></span>
+                <span className="dot green"></span>
+              </div>
+              <span className="preview-title">src/App.jsx — GSBuilder</span>
             </div>
-            <div className="chat-messages-preview">
-              <div className="chat-msg ai">
-                <div className="msg-avatar">🤖</div>
-                <div className="msg-content">
-                  <p>Hi! I'm your AI coding assistant. I support 50+ models including OpenAI, Claude, Gemini, Llama, and local models via Ollama.</p>
-                  <div className="model-tags">
-                    <span className="model-tag">GPT-4</span>
-                    <span className="model-tag">Claude</span>
-                    <span className="model-tag">Llama</span>
-                    <span className="model-tag">Ollama</span>
-                  </div>
-                </div>
-              </div>
-              <div className="chat-msg user">
-                <div className="msg-content">
-                  <p>Build a task management app with drag and drop</p>
-                </div>
-                <div className="msg-avatar">👤</div>
-              </div>
-              <div className="chat-msg ai">
-                <div className="msg-avatar">⚡</div>
-                <div className="msg-content">
-                  <p>Building your app with React + react-dnd...</p>
-                  <div className="files-creating">
-                    <span><FileCode size={12} /> App.jsx</span>
-                    <span><FileCode size={12} /> TaskBoard.jsx</span>
-                    <span><FileCode size={12} /> package.json</span>
-                  </div>
-                </div>
-              </div>
+            <pre className="preview-code">
+              <code>{`function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="app">
+      <h1>Hello World!</h1>
+      <button onClick={() => setCount(c => c + 1)}>
+        Clicks: {count}
+      </button>
+    </div>
+  );
+}
+
+// Run ✓`}</code>
+            </pre>
+            <div className="preview-status">
+              <SvgIcon name="play" size={14} />
+              <span>Running - http://localhost:3000</span>
             </div>
           </div>
         </motion.div>
@@ -328,130 +198,20 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
 
       <section className="stats-section">
         <div className="stat-item">
-          <strong>100+</strong>
-          <span>AI Models</span>
+          <strong>50+</strong>
+          <span>Languages</span>
         </div>
         <div className="stat-item">
-          <strong>200+</strong>
-          <span>MCP Integrations</span>
-        </div>
-        <div className="stat-item">
-          <strong>2M+</strong>
-          <span>Apps Built</span>
-        </div>
-        <div className="stat-item">
-          <strong>100K+</strong>
+          <strong>10M+</strong>
           <span>Developers</span>
         </div>
-      </section>
-
-      <section id="models" className="models-section">
-        <motion.h2 
-          className="section-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-        >
-          Choose your AI Model
-        </motion.h2>
-        <p className="section-subtitle">
-          Cloud models, local models, or connect your own — all in one IDE
-        </p>
-        
-        <div className="model-tabs">
-          <button 
-            className={`model-tab ${activeModelTab === 'cloud' ? 'active' : ''}`}
-            onClick={() => setActiveModelTab('cloud')}
-          >
-            <Cloud size={18} /> Cloud Models
-          </button>
-          <button 
-            className={`model-tab ${activeModelTab === 'local' ? 'active' : ''}`}
-            onClick={() => setActiveModelTab('local')}
-          >
-            <HardDrive size={18} /> Local Models
-          </button>
+        <div className="stat-item">
+          <strong>100M+</strong>
+          <span>Projects</span>
         </div>
-
-        <div className="models-grid">
-          {(activeModelTab === 'cloud' ? AI_MODELS.cloud : AI_MODELS.local).map((model, i) => (
-            <motion.div 
-              key={model.id}
-              className="model-card"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              viewport={{ once: true }}
-              style={{ '--model-color': model.color }}
-            >
-              <div className="model-icon">{model.icon}</div>
-              <h3>{model.name}</h3>
-              <p>{model.description}</p>
-              <div className="model-models">
-                {model.models.slice(0, 3).map((m, j) => (
-                  <span key={j} className="model-badge">{m}</span>
-                ))}
-              </div>
-              <button className="model-connect">Connect</button>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <section id="mcp" className="mcp-section">
-        <motion.h2 
-          className="section-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-        >
-          MCP Integrations
-        </motion.h2>
-        <p className="section-subtitle">
-          Connect to 100+ tools and services via Model Context Protocol
-        </p>
-
-        <div className="mcp-grid">
-          {AI_MODELS.mcp.map((tool, i) => (
-            <motion.div 
-              key={tool.id}
-              className="mcp-card"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.03 }}
-              viewport={{ once: true }}
-            >
-              <span className="mcp-icon">{tool.icon}</span>
-              <h4>{tool.name}</h4>
-              <p>{tool.description}</p>
-              <button className="mcp-install">Install</button>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mcp-featured">
-          <div className="mcp-featured-item">
-            <Workflow size={24} />
-            <div>
-              <h4>n8n Integration</h4>
-              <p>Automate workflows with AI-powered n8n nodes</p>
-            </div>
-            <button>Connect</button>
-          </div>
-          <div className="mcp-featured-item">
-            <GitBranch size={24} />
-            <div>
-              <h4>GitHub Integration</h4>
-              <p>Sync repos, create PRs, manage issues</p>
-            </div>
-            <button>Connect</button>
-          </div>
-          <div className="mcp-featured-item">
-            <Database size={24} />
-            <div>
-              <h4>Database Tools</h4>
-              <p>PostgreSQL, SQLite, MongoDB connectors</p>
-            </div>
-            <button>Connect</button>
-          </div>
+        <div className="stat-item">
+          <strong>99.9%</strong>
+          <span>Uptime</span>
         </div>
       </section>
 
@@ -461,22 +221,22 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
         >
-          Everything you need to ship faster
+          Everything you need to build faster
         </motion.h2>
         <div className="features-grid">
           {[
-            { icon: <Wand2 />, title: 'AI-Powered Generation', desc: 'Describe any app in plain English and get full code' },
-            { icon: <Bot />, title: '50+ AI Models', desc: 'Cloud & local models in one IDE' },
-            { icon: <Layout />, title: 'Visual Editor', desc: 'Drag-and-drop with live preview' },
-            { icon: <Database />, title: 'Built-in Database', desc: 'PostgreSQL, MongoDB, SQLite ready' },
-            { icon: <Cloud />, title: 'One-Click Deploy', desc: 'Deploy to Vercel, Netlify instantly' },
-            { icon: <Zap />, title: 'Real-time Sync', desc: 'Live collaboration with your team' },
-            { icon: <HardDrive />, title: 'Local Models', desc: 'Run Ollama, LM Studio locally' },
-            { icon: <Workflow />, title: 'No-Code Workflows', desc: 'Build automations without code' },
-            { icon: <GitBranch />, title: 'GitHub Sync', desc: 'Repo management & PRs' },
-            { icon: <Puzzle />, title: 'MCP Integrations', desc: '100+ tool connections' },
-            { icon: <TerminalIcon />, title: 'Built-in Terminal', desc: 'Full shell access' },
-            { icon: <Shield />, title: 'Enterprise Security', desc: 'SOC2 compliant' },
+            { icon: 'code', title: 'Smart Editor', desc: 'Syntax highlighting, autocomplete, and intelligent suggestions' },
+            { icon: 'terminal', title: 'Built-in Terminal', desc: 'Full shell access with package managers' },
+            { icon: 'database', title: 'Databases', desc: 'PostgreSQL, MySQL, MongoDB ready to use' },
+            { icon: 'cloud', title: 'One-Click Deploy', desc: 'Deploy to Vercel, Netlify, or custom domains' },
+            { icon: 'users', title: 'Real-time Collab', desc: 'Code together with your team in real-time' },
+            { icon: 'gitbranch', title: 'Git Integration', desc: 'Built-in version control and GitHub sync' },
+            { icon: 'package', title: 'Package Manager', desc: 'npm, yarn, pnpm - all supported' },
+            { icon: 'bug', title: 'Debugger', desc: 'Breakpoints, watches, and console debugging' },
+            { icon: 'layers', title: 'Multi-file', desc: 'Work on entire projects with tabs' },
+            { icon: 'monitor', title: 'Live Preview', desc: 'See your changes instantly in the browser' },
+            { icon: 'lock', title: 'Secure', desc: 'Enterprise-grade security with encryption' },
+            { icon: 'workflow', title: 'Custom Domains', desc: 'Connect your own domain for free' },
           ].map((f, i) => (
             <motion.div 
               key={i}
@@ -486,7 +246,7 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
               transition={{ delay: i * 0.05 }}
               viewport={{ once: true }}
             >
-              <div className="feature-icon">{f.icon}</div>
+              <div className="feature-icon"><SvgIcon name={f.icon} size={24} /></div>
               <h3>{f.title}</h3>
               <p>{f.desc}</p>
             </motion.div>
@@ -494,309 +254,75 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
         </div>
       </section>
 
-      <section id="compare" className="compare-section">
+      <section className="templates-section">
         <motion.h2 
           className="section-title"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
         >
-          How we compare
+          Start from a template
         </motion.h2>
-        <p className="section-subtitle">
-          See why GUIDESOFT IDE is the most complete AI development platform
-        </p>
-        
-        <div className="compare-table-wrapper">
-          <div className="compare-table">
-            <div className="compare-header">
-              <div className="compare-feature">Feature</div>
-              <div className="compare-gs">GUIDESOFT</div>
-              <div className="compare-other">Cursor</div>
-              <div className="compare-other">VS Code</div>
-              <div className="compare-other">Lovable</div>
-              <div className="compare-other">Composable</div>
-            </div>
-            {VSCODE_FEATURES.map((row, i) => (
-              <div key={i} className="compare-row">
-                <div className="compare-feature">{row.feature}</div>
-                <div className="compare-gs">
-                  {row.gs === true ? <Check className="check-green" /> : <XCircle className="check-gray" />}
-                </div>
-                <div className="compare-other">
-                  {row.cursor === true ? <Check className="check-green" /> : row.cursor === 'Partial' ? <span className="partial">◐</span> : <XCircle className="check-gray" />}
-                </div>
-                <div className="compare-other">
-                  {row.vscode === true ? <Check className="check-green" /> : row.vscode === 'Partial' ? <span className="partial">◐</span> : <XCircle className="check-gray" />}
-                </div>
-                <div className="compare-other">
-                  {row.lovable === true ? <Check className="check-green" /> : row.lovable === 'Partial' ? <span className="partial">◐</span> : <XCircle className="check-gray" />}
-                </div>
-                <div className="compare-other">
-                  {row.composable === true ? <Check className="check-green" /> : row.composable === 'Partial' ? <span className="partial">◐</span> : <XCircle className="check-gray" />}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="workflows-section">
-        <motion.h2 
-          className="section-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-        >
-          No-Code Workflows
-        </motion.h2>
-        <p className="section-subtitle">
-          Build automations visually with AI-powered workflow builder
-        </p>
-        
-        <div className="workflow-preview">
-          <div className="workflow-node trigger">
-            <Webhook size={20} />
-            <span>Webhook Trigger</span>
-          </div>
-          <div className="workflow-arrow">→</div>
-          <div className="workflow-node ai">
-            <Sparkles size={20} />
-            <span>AI Action</span>
-          </div>
-          <div className="workflow-arrow">→</div>
-          <div className="workflow-node database">
-            <Database size={20} />
-            <span>Save to DB</span>
-          </div>
-          <div className="workflow-arrow">→</div>
-          <div className="workflow-node notify">
-            <MessageCircle size={20} />
-            <span>Notify Slack</span>
-          </div>
-        </div>
-
-        <div className="workflow-templates">
-          <h3>Popular Workflows</h3>
-          <div className="template-grid">
-            <div className="template-card">
-              <Mail size={20} />
-              <h4>AI Email Responder</h4>
-              <p>Auto-reply to emails with AI</p>
-            </div>
-            <div className="template-card">
-              <GitPullRequest size={20} />
-              <h4>Code Review Auto</h4>
-              <p>AI-powered PR reviews</p>
-            </div>
-            <div className="template-card">
-              <Bug size={20} />
-              <h4>Bug Triage Bot</h4>
-              <p>Auto-categorize issues</p>
-            </div>
-            <div className="template-card">
-              <Rocket size={20} />
-              <h4>Auto Deploy</h4>
-              <p>Deploy on PR merge</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="preview-section">
-        <div className="preview-content">
-          <h2>GitHub Code Preview</h2>
-          <p>Browse and edit GitHub repositories directly in your IDE</p>
-        </div>
-        <div className="github-preview">
-          <div className="github-header">
-            <GitBranch size={20} />
-            <span>username/my-project</span>
-            <span className="github-star"><Star size={14} /> 1.2k</span>
-          </div>
-          <div className="github-files">
-            <div className="github-file">
-              <FileCode size={14} />
-              <span>src/App.jsx</span>
-              <span className="file-lines">45 lines</span>
-            </div>
-            <div className="github-file">
-              <FileCode size={14} />
-              <span>src/components/Header.jsx</span>
-              <span className="file-lines">32 lines</span>
-            </div>
-            <div className="github-file">
-              <FileJson size={14} />
-              <span>package.json</span>
-              <span className="file-lines">28 lines</span>
-            </div>
-          </div>
-          <button className="btn-primary">Clone Repository</button>
-        </div>
-      </section>
-
-      <section className="collab-section">
-        <motion.h2 
-          className="section-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-        >
-          Real-time Collaboration
-        </motion.h2>
-        <p className="section-subtitle">
-          Code together with your team in real-time
-        </p>
-        
-        <div className="collab-preview">
-          <div className="collab-users">
-            <div className="collab-user" style={{ '--user-color': '#7EE787' }}>
-              <div className="user-avatar">A</div>
-              <span>Alice</span>
-              <span className="cursor-label">editing App.jsx</span>
-            </div>
-            <div className="collab-user" style={{ '--user-color': '#FF7EB6' }}>
-              <div className="user-avatar">B</div>
-              <span>Bob</span>
-              <span className="cursor-label">viewing utils.js</span>
-            </div>
-            <div className="collab-user" style={{ '--user-color': '#79C0FF' }}>
-              <div className="user-avatar">C</div>
-              <span>Carol</span>
-              <span className="cursor-label">in terminal</span>
-            </div>
-          </div>
-          <div className="collab-features">
-            <div className="collab-feature"><Video size={18} /> Video call</div>
-            <div className="collab-feature"><MessageCircle size={18} /> Chat</div>
-            <div className="collab-feature"><Share2 size={18} /> Screen share</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="debugger-section">
-        <motion.h2 
-          className="section-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-        >
-          Built-in Debugger
-        </motion.h2>
-        <p className="section-subtitle">
-          Debug your code with breakpoints, watches, and console
-        </p>
-        
-        <div className="debugger-preview">
-          <div className="debugger-panel">
-            <div className="debug-header">
-              <Bug size={16} />
-              <span>Debug Console</span>
-            </div>
-            <div className="debug-content">
-              <div className="debug-line breakpoint">
-                <span className="line-num">12</span>
-                <span className="breakpoint-marker">●</span>
-                <code>const result = calculate(a, b);</code>
-              </div>
-              <div className="debug-line">
-                <span className="line-num">13</span>
-                <code>console.log('Result:', result);</code>
-              </div>
-              <div className="debug-line active">
-                <span className="line-num">14</span>
-                <span className="debug-arrow">→</span>
-                <code>return result * 2;</code>
-              </div>
-            </div>
-          </div>
-          <div className="debugger-sidebar">
-            <div className="debug-watch">
-              <h4>Watch</h4>
-              <div className="watch-item"><code>result</code> = 42</div>
-              <div className="watch-item"><code>a</code> = 21</div>
-              <div className="watch-item"><code>b</code> = 2</div>
-            </div>
-            <div className="debug-breakpoints">
-              <h4>Breakpoints</h4>
-              <div className="bp-item">App.jsx:12</div>
-              <div className="bp-item">utils.js:5</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="extensions-section">
-        <motion.h2 
-          className="section-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-        >
-          Extensions Marketplace
-        </motion.h2>
-        <p className="section-subtitle">
-          Extend your IDE with themes, languages, and tools
-        </p>
-        
-        <div className="extensions-grid">
+        <div className="templates-grid">
           {[
-            { icon: '🎨', name: 'Themes', count: '500+', color: '#FF7EB6' },
-            { icon: '🌐', name: 'Language Packs', count: '200+', color: '#79C0FF' },
-            { icon: '🔌', name: 'Plugins', count: '1000+', color: '#7EE787' },
-            { icon: '🎯', name: 'Snippets', count: '50K+', color: '#A78BFA' },
-          ].map((ext, i) => (
+            { name: 'React App', icon: 'appwindow', desc: 'Full React application' },
+            { name: 'Node.js API', icon: 'server', desc: 'REST API with Express' },
+            { name: 'Python ML', icon: 'cpu', desc: 'Machine learning starter' },
+            { name: 'Next.js', icon: 'globe', desc: 'Full-stack React framework' },
+            { name: 'Vue.js', icon: 'layers', desc: 'Progressive JavaScript framework' },
+            { name: 'Static Site', icon: 'file', desc: 'HTML, CSS, vanilla JS' },
+          ].map((t, i) => (
             <motion.div 
               key={i}
-              className="extension-card"
+              className="template-card"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
             >
-              <span className="ext-icon">{ext.icon}</span>
-              <h3>{ext.name}</h3>
-              <p>{ext.count}</p>
+              <SvgIcon name={t.icon} size={32} />
+              <h4>{t.name}</h4>
+              <p>{t.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       <section id="pricing" className="pricing-section">
-        <h2 className="section-title">Simple, transparent pricing</h2>
+        <h2 className="section-title">Simple pricing</h2>
         <div className="pricing-grid">
           <div className="pricing-card">
             <h3>Free</h3>
             <div className="price">$0<span>/month</span></div>
             <ul>
-              <li><Check size={16} /> Basic AI completion</li>
-              <li><Check size={16} /> 50 requests/day</li>
-              <li><Check size={16} /> Cloud models</li>
-              <li><Check size={16} /> Community MCPs</li>
-              <li><Check size={16} /> 1 project</li>
+              <li><SvgIcon name="check" size={14} /> Unlimited public projects</li>
+              <li><SvgIcon name="check" size={14} /> 500MB storage</li>
+              <li><SvgIcon name="check" size={14} /> Community support</li>
+              <li><SvgIcon name="check" size={14} /> Standard hardware</li>
             </ul>
             <button className="btn-primary">Get Started</button>
           </div>
           <div className="pricing-card featured">
             <span className="badge-featured">Most Popular</span>
             <h3>Pro</h3>
-            <div className="price">$19<span>/month</span></div>
+            <div className="price">$15<span>/month</span></div>
             <ul>
-              <li><Check size={16} /> Unlimited AI requests</li>
-              <li><Check size={16} /> All 50+ models</li>
-              <li><Check size={16} /> Local models (Ollama)</li>
-              <li><Check size={16} /> All MCP integrations</li>
-              <li><Check size={16} /> Workflows builder</li>
-              <li><Check size={16} /> GitHub sync</li>
-              <li><Check size={16} /> Priority support</li>
+              <li><SvgIcon name="check" size={14} /> Unlimited private projects</li>
+              <li><SvgIcon name="check" size={14} /> 10GB storage</li>
+              <li><SvgIcon name="check" size={14} /> Priority support</li>
+              <li><SvgIcon name="check" size={14} /> Faster hardware</li>
+              <li><SvgIcon name="check" size={14} /> Custom domains</li>
             </ul>
             <button className="btn-primary btn-large">Start Free Trial</button>
           </div>
           <div className="pricing-card">
             <h3>Team</h3>
-            <div className="price">$49<span>/month</span></div>
+            <div className="price">$45<span>/month</span></div>
             <ul>
-              <li><Check size={16} /> Everything in Pro</li>
-              <li><Check size={16} /> Team collaboration</li>
-              <li><Check size={16} /> Shared AI context</li>
-              <li><Check size={16} /> Admin dashboard</li>
-              <li><Check size={16} /> SSO & SAML</li>
-              <li><Check size={16} /> Custom integrations</li>
+              <li><SvgIcon name="check" size={14} /> Everything in Pro</li>
+              <li><SvgIcon name="check" size={14} /> Team collaboration</li>
+              <li><SvgIcon name="check" size={14} /> Admin dashboard</li>
+              <li><SvgIcon name="check" size={14} /> SSO & SAML</li>
+              <li><SvgIcon name="check" size={14} /> Dedicated support</li>
             </ul>
             <button className="btn-primary">Contact Sales</button>
           </div>
@@ -804,88 +330,67 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
       </section>
 
       <section className="cta-section">
-        <h2>Ready to build faster?</h2>
-        <p>Join 50,000+ developers shipping with GUIDESOFT IDE</p>
-        <div className="cta-actions">
-          <button className="btn-primary btn-large" onClick={onEnterIDE}>
-            Start Building Free <ArrowRight size={20} />
-          </button>
-        </div>
-        <div className="cta-stats">
-          <div><strong>50K+</strong> developers</div>
-          <div><strong>1M+</strong> apps built</div>
-          <div><strong>4.9</strong> rating</div>
-        </div>
+        <h2>Ready to start building?</h2>
+        <p>Join millions of developers building on GSBuilder</p>
+        <button className="btn-primary btn-large" onClick={onEnterIDE}>
+          Start Coding Now <SvgIcon name="arrowright" size={18} />
+        </button>
       </section>
 
       <footer className="footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <Sparkles className="logo-icon" />
-            <span>GUIDESOFT</span>
-            <p>AI-powered IDE for modern developers</p>
-            <div className="footer-social">
-              <GitBranch size={18} />
-              <Link size={18} />
-              <Globe size={18} />
-              <Box size={18} />
-            </div>
+            <SvgIcon name="code" size={24} />
+            <span>GSBuilder</span>
+            <p>The cloud IDE that runs in your browser</p>
           </div>
           <div className="footer-links">
             <div>
               <h4>Product</h4>
               <a href="#features">Features</a>
-              <a href="#models">AI Models</a>
-              <a href="#mcp">MCP</a>
+              <a href="#templates">Templates</a>
               <a href="#pricing">Pricing</a>
             </div>
             <div>
               <h4>Resources</h4>
-              <a href="#">Documentation</a>
-              <a href="#">API Reference</a>
-              <a href="#">Templates</a>
+              <a href="#docs">Documentation</a>
+              <a href="#">API</a>
               <a href="#">Blog</a>
             </div>
             <div>
-              <h4>Integrations</h4>
-              <a href="#">GitHub</a>
-              <a href="#">n8n</a>
-              <a href="#">PostgreSQL</a>
-              <a href="#">Slack</a>
-            </div>
-            <div>
-              <h4>Legal</h4>
-              <a href="#">Privacy</a>
-              <a href="#">Terms</a>
-              <a href="#">Security</a>
+              <h4>Company</h4>
+              <a href="#">About</a>
+              <a href="#">Careers</a>
+              <a href="#">Contact</a>
             </div>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2026 GUIDESOFT IDE. All rights reserved.</p>
+          <p>© 2026 GSBuilder. All rights reserved.</p>
         </div>
       </footer>
     </div>
   )
 }
 
-function IDE({ onExit, initialPrompt }) {
-  const [files, setFiles] = useState(initialPrompt ? PROMPT_RESPONSES[initialPrompt]?.files || SAMPLE_FILES : SAMPLE_FILES)
+function IDE({ onExit }) {
+  const [files, setFiles] = useState(SAMPLE_FILES)
   const [activeFile, setActiveFile] = useState('src/App.jsx')
-  const [fileContent, setFileContent] = useState(files['src/App.jsx']?.content || SAMPLE_FILES['src'].children['App.jsx'].content)
+  const [fileContent, setFileContent] = useState(SAMPLE_FILES['src'].children['App.jsx'].content)
   const [openTabs, setOpenTabs] = useState(['src/App.jsx'])
-  const [activeModelTab, setActiveModelTab] = useState('cloud')
-  const [selectedModel, setSelectedModel] = useState('claude')
-  const [aiMessages, setAiMessages] = useState([
-    { role: 'assistant', content: initialPrompt ? `I've built your "${initialPrompt}" application! Here's what was created:\n\n• Complete React components\n• Full functionality\n• Package dependencies\n\nWould you like me to explain any part or make changes?` : 'Hi! I\'m Claude. Select an AI model and ask me to help with your code.\n\n💡 Try switching between Cloud (OpenAI, Claude, Gemini) or Local (Ollama, LM Studio) models.', agent: 'claude' }
+  const [terminalOutput, setTerminalOutput] = useState([
+    'GSBuilder Terminal v1.0',
+    '> npm install',
+    'added 245 packages in 3s',
+    '> npm run dev',
+    'Ready on http://localhost:3000'
   ])
-  const [inputMessage, setInputMessage] = useState('')
-  const [activeAgent, setActiveAgent] = useState('claude')
-  const [terminalOutput, setTerminalOutput] = useState(['Welcome to GUIDESOFT IDE Terminal v1.0', '> Ready', '💡 Try: npm install, npm run dev, git push'])
   const [showTerminal, setShowTerminal] = useState(true)
-  const [expandedFolders, setExpandedFolders] = useState({ 'src': true, 'components': true })
-  const [editorLoading, setEditorLoading] = useState(true)
-  
+  const [expandedFolders, setExpandedFolders] = useState({ 'src': true, 'components': true, 'styles': true })
+  const [consoleMessages, setConsoleMessages] = useState([
+    { type: 'log', content: 'App loaded successfully' }
+  ])
+
   const terminalRef = useRef(null)
 
   const getLanguage = (filename) => {
@@ -945,9 +450,9 @@ function IDE({ onExit, initialPrompt }) {
             onClick={() => isFolder ? toggleFolder(name) : handleFileSelect(fullPath)}
           >
             {isFolder ? (
-              <ChevronRight size={14} className={`folder-icon ${isExpanded ? 'expanded' : ''}`} />
+              <SvgIcon name="chevronright" size={14} className={`folder-icon ${isExpanded ? 'expanded' : ''}`} />
             ) : (
-              <FileCode size={14} className="file-icon" />
+              <SvgIcon name="file" size={14} className="file-icon" />
             )}
             <span>{name}</span>
           </div>
@@ -961,39 +466,15 @@ function IDE({ onExit, initialPrompt }) {
     })
   }
 
-  const sendMessage = () => {
-    if (!inputMessage.trim()) return
-    
-    const newMessages = [...aiMessages, { role: 'user', content: inputMessage, agent: activeAgent }]
-    setAiMessages(newMessages)
-    setInputMessage('')
-
-    setTimeout(() => {
-      const responses = {
-        openai: `Here's a code suggestion using GPT-4:\n\n\`\`\`javascript\n// AI-generated with OpenAI GPT-4o\n${inputMessage.includes('function') ? 'const result = ' + inputMessage : '// Implementation for: ' + inputMessage}\n\`\`\`\n\nModel: GPT-4o | Context: 128K tokens`,
-        chatgpt: `I've analyzed your request with ChatGPT:\n\n1. Consider using async/await for better readability\n2. Add error handling for robustness\n3. Type checking could improve reliability\n\nWould you like me to generate the code?`,
-        claude: `I understand you're working on "${inputMessage}". Here's my analysis:\n\n• Code structure looks good\n• Consider memoization for expensive calculations\n• Use proper TypeScript types for better IDE support\n\n\`\`\`typescript\n// Suggested implementation\ninterface Props {\n  // type definitions\n}\n\`\`\``,
-        codex: `Code generation complete with Codex:\n\n\`\`\`python\n# Generated based on: ${inputMessage}\ndef solution():\n    # Implementation here\n    pass\n\`\`\`\n\n✓ Optimized for performance`,
-        ollama: `Running locally with Ollama (Llama 3.3):\n\n\`\`\`javascript\n// Generated with local model - no API calls\n${inputMessage.includes('function') ? 'const result = ' + inputMessage : '// Implementation: ' + inputMessage}\n\`\`\`\n\n🖥️ Running offline • Privacy first`,
-      }
-      setAiMessages([...newMessages, { 
-        role: 'assistant', 
-        content: responses[activeAgent] || responses.claude, 
-        agent: activeAgent 
-      }])
-    }, 1200)
-  }
-
   const runCode = () => {
     setTerminalOutput(prev => [
-      ...prev, 
-      `> Running ${activeFile}...`,
-      '✓ Execution complete (0.23s)',
+      ...prev,
       '',
-      'Output:',
-      '--------',
-      'App running at http://localhost:3000'
+      `> Running ${activeFile}...`,
+      '✓ Build successful',
+      '✓ App running at http://localhost:3000'
     ])
+    setConsoleMessages(prev => [...prev, { type: 'log', content: 'Server started on port 3000' }])
   }
 
   return (
@@ -1001,34 +482,36 @@ function IDE({ onExit, initialPrompt }) {
       <div className="ide-header">
         <div className="ide-header-left">
           <button className="ide-btn" onClick={onExit}>
-            <X size={16} />
+            <SvgIcon name="x" size={16} />
           </button>
           <div className="ide-logo">
-            <Sparkles size={18} />
-            <span>GUIDESOFT IDE</span>
+            <SvgIcon name="code" size={18} />
+            <span>GSBuilder</span>
           </div>
         </div>
         <div className="ide-header-center">
           <span className="active-file">{activeFile}</span>
         </div>
         <div className="ide-header-right">
-          <button className="ide-btn"><Minimize2 size={16} /></button>
-          <button className="ide-btn"><Maximize2 size={16} /></button>
+          <button className="ide-btn"><SvgIcon name="gitbranch" size={16} /></button>
+          <button className="ide-btn"><SvgIcon name="share" size={16} /></button>
+          <button className="ide-btn"><SvgIcon name="minimize" size={16} /></button>
+          <button className="ide-btn"><SvgIcon name="maximize" size={16} /></button>
         </div>
       </div>
 
       <div className="ide-main">
         <div className="ide-sidebar">
           <div className="sidebar-tabs">
-            <button className="sidebar-tab active"><FileCode size={16} /></button>
-            <button className="sidebar-tab"><SearchCode size={16} /></button>
-            <button className="sidebar-tab"><GitBranch size={16} /></button>
-            <button className="sidebar-tab"><Puzzle size={16} /></button>
+            <button className="sidebar-tab active"><SvgIcon name="file" size={16} /></button>
+            <button className="sidebar-tab"><SvgIcon name="searchcode" size={16} /></button>
+            <button className="sidebar-tab"><SvgIcon name="gitbranch" size={16} /></button>
+            <button className="sidebar-tab"><SvgIcon name="plug" size={16} /></button>
           </div>
           <div className="sidebar-content">
             <div className="sidebar-header">
               <span>EXPLORER</span>
-              <button className="ide-btn"><Plus size={14} /></button>
+              <button className="ide-btn"><SvgIcon name="plus" size={14} /></button>
             </div>
             <div className="file-tree">
               {renderFileTree(files)}
@@ -1044,150 +527,74 @@ function IDE({ onExit, initialPrompt }) {
                 className={`tab ${activeFile === tab ? 'active' : ''}`}
                 onClick={() => handleFileSelect(tab)}
               >
-                <FileCode size={14} />
+                <SvgIcon name="file" size={14} />
                 <span>{tab.split('/').pop()}</span>
                 <button className="tab-close" onClick={(e) => closeTab(e, tab)}>
-                  <X size={12} />
+                  <SvgIcon name="x" size={12} />
                 </button>
               </div>
             ))}
           </div>
           
           <div className="editor-wrapper">
-            {editorLoading && (
-              <div className="editor-loading">
-                <div className="loading-spinner"></div>
-                <span>Loading editor...</span>
-              </div>
-            )}
-            <MonacoEditor
-              height="100%"
-              language={getLanguage(activeFile)}
+            <textarea
               value={fileContent}
-              onChange={(value) => setFileContent(value)}
-              theme="vs-dark"
-              onMount={() => setEditorLoading(false)}
-              options={{
-                fontSize: 14,
-                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                minimap: { enabled: true },
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-                padding: { top: 16 },
-              }}
+              onChange={(e) => setFileContent(e.target.value)}
+              className="code-editor"
+              spellCheck={false}
             />
           </div>
 
-          {showTerminal && (
-            <div className="terminal-panel" ref={terminalRef}>
-              <div className="terminal-header">
-                <span>TERMINAL</span>
-                <div className="terminal-actions">
-                  <button className="ide-btn" onClick={() => setTerminalOutput(['Welcome to GUIDESOFT IDE Terminal v1.0', '> Ready', '💡 Try: npm install, npm run dev, git push'])}>
-                    <RotateCcw size={14} />
-                  </button>
-                  <button className="ide-btn" onClick={() => setShowTerminal(false)}>
-                    <X size={14} />
-                  </button>
+          <div className="bottom-panel">
+            <div className="panel-tabs">
+              <button className="panel-tab active"><SvgIcon name="terminal" size={14} /> Console</button>
+              <button className="panel-tab"><SvgIcon name="bug" size={14} /> Problems</button>
+              <button className="panel-tab"><SvgIcon name="search" size={14} /> Output</button>
+            </div>
+            {showTerminal && (
+              <div className="terminal-panel" ref={terminalRef}>
+                <div className="terminal-output">
+                  {terminalOutput.map((line, i) => (
+                    <div key={i} className="terminal-line">{line}</div>
+                  ))}
+                </div>
+                <div className="terminal-input">
+                  <span>$</span>
+                  <input type="text" placeholder="Enter command..." />
                 </div>
               </div>
-              <div className="terminal-output">
-                {terminalOutput.map((line, i) => (
-                  <div key={i} className="terminal-line">{line}</div>
-                ))}
-              </div>
-              <div className="terminal-input">
-                <span>$</span>
-                <input type="text" placeholder="Enter command..." />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
           
           <button className="run-btn" onClick={runCode}>
-            <Play size={14} /> Run
+            <SvgIcon name="play" size={14} /> Run
           </button>
         </div>
 
-        <div className="ai-panel">
-          <div className="ai-panel-header">
-            <Sparkles size={16} />
-            <span>AI Assistant</span>
-            <span className="ai-badge">50+ models</span>
+        <div className="preview-panel">
+          <div className="preview-header">
+            <span>Preview</span>
+            <div className="preview-url">localhost:3000</div>
           </div>
-
-          <div className="model-selector-tabs">
-            <button 
-              className={`model-selector-tab ${activeModelTab === 'cloud' ? 'active' : ''}`}
-              onClick={() => setActiveModelTab('cloud')}
-            >
-              <Cloud size={12} /> Cloud
-            </button>
-            <button 
-              className={`model-selector-tab ${activeModelTab === 'local' ? 'active' : ''}`}
-              onClick={() => setActiveModelTab('local')}
-            >
-              <HardDrive size={12} /> Local
-            </button>
-          </div>
-          
-          <div className="agent-selector">
-            {(activeModelTab === 'cloud' ? AI_MODELS.cloud : AI_MODELS.local).slice(0, 6).map(agent => (
-              <button 
-                key={agent.id}
-                className={`agent-tab ${selectedModel === agent.id ? 'active' : ''}`}
-                style={{ '--agent-color': agent.color }}
-                onClick={() => { setSelectedModel(agent.id); setActiveAgent(agent.id); }}
-                title={agent.name}
-              >
-                <span>{agent.icon}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="chat-messages">
-            {aiMessages.map((msg, i) => (
-              <div key={i} className={`message ${msg.role}`}>
-                <div className="message-avatar">
-                  {msg.role === 'user' ? '👤' : (AI_MODELS.cloud.find(a => a.id === msg.agent)?.icon || AI_MODELS.local.find(a => a.id === msg.agent)?.icon || '🤖')}
-                </div>
-                <div className="message-content">
-                  {msg.content.split('```').map((part, j) => j % 2 === 1 ? (
-                    <pre key={j} className="code-block">{part}</pre>
-                  ) : (
-                    <p key={j}>{part}</p>
-                  ))}
-                </div>
+          <div className="preview-frame">
+            <div className="preview-content">
+              <h2>Hello GSBuilder!</h2>
+              <p>Your app is running successfully.</p>
+              <div className="preview-counter">
+                <span>Clicks: 0</span>
+                <button>Increment</button>
               </div>
-            ))}
-          </div>
-
-          <div className="chat-input">
-            <input 
-              type="text" 
-              placeholder="Ask AI..."
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            />
-            <button onClick={sendMessage}><Send size={16} /></button>
-          </div>
-
-          <div className="mcp-status">
-            <Puzzle size={12} />
-            <span>12 MCPs connected</span>
-            <Link size={12} />
+            </div>
           </div>
         </div>
       </div>
 
       <div className="ide-statusbar">
         <div className="status-left">
-          <span><Bot size={12} /> {AI_MODELS.cloud.find(m => m.id === selectedModel)?.name || AI_MODELS.local.find(m => m.id === selectedModel)?.name || 'Claude'}</span>
-          <span>main*</span>
+          <span><SvgIcon name="gitbranch" size={12} /> main*</span>
+          <span>0 errors</span>
         </div>
         <div className="status-right">
-          <span><HardDrive size={12} /> {activeModelTab === 'local' ? 'Local' : 'Cloud'}</span>
           <span>UTF-8</span>
           <span>{getLanguage(activeFile)}</span>
           <span>Ln 1, Col 1</span>
@@ -1199,12 +606,6 @@ function IDE({ onExit, initialPrompt }) {
 
 function App() {
   const [showIDE, setShowIDE] = useState(false)
-  const [prompt, setPrompt] = useState('')
-
-  const handleTryPrompt = (p) => {
-    setPrompt(p)
-    setShowIDE(true)
-  }
 
   return (
     <AnimatePresence mode="wait">
@@ -1215,7 +616,7 @@ function App() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <IDE onExit={() => setShowIDE(false)} initialPrompt={prompt} />
+          <IDE onExit={() => setShowIDE(false)} />
         </motion.div>
       ) : (
         <motion.div
@@ -1224,7 +625,7 @@ function App() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <LandingPage onEnterIDE={() => setShowIDE(true)} onTryPrompt={handleTryPrompt} />
+          <LandingPage onEnterIDE={() => setShowIDE(true)} />
         </motion.div>
       )}
     </AnimatePresence>
