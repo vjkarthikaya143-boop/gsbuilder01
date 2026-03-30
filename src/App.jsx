@@ -1,6 +1,52 @@
 import { useState, useEffect, useRef } from 'react'
-import Editor from '@monaco-editor/react'
 import { motion, AnimatePresence } from 'framer-motion'
+
+const MonacoEditor = ({ height, language, value, onChange, theme, onMount, options }) => {
+  const [Editor, setEditor] = useState(null)
+  const editorRef = useRef(null)
+  
+  useEffect(() => {
+    import('@monaco-editor/react').then((mod) => {
+      setEditor(() => mod.default)
+    }).catch(() => {
+      console.error('Failed to load Monaco Editor')
+    })
+  }, [])
+  
+  if (!Editor) {
+    return (
+      <div style={{ height, background: '#1e1e1e', padding: 16 }}>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            width: '100%',
+            height: 'calc(100% - 32px)',
+            background: '#1e1e1e',
+            color: '#d4d4d4',
+            border: 'none',
+            outline: 'none',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 14,
+            resize: 'none',
+          }}
+        />
+      </div>
+    )
+  }
+  
+  return (
+    <Editor
+      height={height}
+      language={language}
+      value={value}
+      onChange={onChange}
+      theme={theme}
+      onMount={onMount}
+      options={options}
+    />
+  )
+}
 import { 
   Code2, FileCode, Terminal, MessageSquare, Settings, 
   ChevronRight, X, Plus, Folder, File, Play, Sparkles,
@@ -837,6 +883,7 @@ function IDE({ onExit, initialPrompt }) {
   const [terminalOutput, setTerminalOutput] = useState(['Welcome to GUIDESOFT IDE Terminal v1.0', '> Ready', '💡 Try: npm install, npm run dev, git push'])
   const [showTerminal, setShowTerminal] = useState(true)
   const [expandedFolders, setExpandedFolders] = useState({ 'src': true, 'components': true })
+  const [editorLoading, setEditorLoading] = useState(true)
   
   const terminalRef = useRef(null)
 
@@ -1006,12 +1053,19 @@ function IDE({ onExit, initialPrompt }) {
           </div>
           
           <div className="editor-wrapper">
-            <Editor
+            {editorLoading && (
+              <div className="editor-loading">
+                <div className="loading-spinner"></div>
+                <span>Loading editor...</span>
+              </div>
+            )}
+            <MonacoEditor
               height="100%"
               language={getLanguage(activeFile)}
               value={fileContent}
               onChange={(value) => setFileContent(value)}
               theme="vs-dark"
+              onMount={() => setEditorLoading(false)}
               options={{
                 fontSize: 14,
                 fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
