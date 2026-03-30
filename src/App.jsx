@@ -437,7 +437,7 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
             <button>Connect</button>
           </div>
           <div className="mcp-featured-item">
-            <GitHub size={24} />
+            <GitBranch size={24} />
             <div>
               <h4>GitHub Integration</h4>
               <p>Sync repos, create PRs, manage issues</p>
@@ -608,7 +608,7 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
         </div>
         <div className="github-preview">
           <div className="github-header">
-            <GitHub size={20} />
+            <GitBranch size={20} />
             <span>username/my-project</span>
             <span className="github-star"><Star size={14} /> 1.2k</span>
           </div>
@@ -828,6 +828,7 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
               <GitBranch size={18} />
               <Link size={18} />
               <Globe size={18} />
+              <Box size={18} />
             </div>
           </div>
           <div className="footer-links">
