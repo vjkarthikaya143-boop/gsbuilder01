@@ -13,30 +13,37 @@ import {
   GitPullRequest, Infinity, Box, ExternalLink, Workflow, Plug, Puzzle,
   Server, HardDrive, Moon, Sun, Package, AppWindow, Code,
   TerminalIcon, FileJson, FolderOpen, SearchCode, Mic, Image,
-  BookOpen, LifeBuoy, MessageCircle, Video, Mail, Webhook
+  BookOpen, LifeBuoy, MessageCircle, Video, Mail, Webhook, Share2
 } from 'lucide-react'
 import './App.css'
 
 const AI_MODELS = {
   cloud: [
-    { id: 'openai', name: 'OpenAI', icon: '🤖', color: '#10A37F', description: 'GPT-4o, GPT-4, GPT-3.5', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
-    { id: 'anthropic', name: 'Anthropic', icon: '🧠', color: '#D97757', description: 'Claude 3.5 Sonnet, Opus, Haiku', models: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku'] },
-    { id: 'google', name: 'Google AI', icon: '🔷', color: '#4285F4', description: 'Gemini 1.5 Pro, Flash', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'] },
-    { id: 'meta', name: 'Meta AI', icon: '🌐', color: '#0668E1', description: 'Llama 3.1, 3, 2', models: ['llama-3.1-405b', 'llama-3.1-70b', 'llama-3-70b'] },
-    { id: 'mistral', name: 'Mistral', icon: '🌪️', color: '#FF7000', description: 'Mixtral, Codestral', models: ['mixtral-8x7b', 'codestral-2501'] },
-    { id: 'cohere', name: 'Cohere', icon: '🔗', color: '#39594D', description: 'Command R+', models: ['command-r-plus', 'command-r'] },
+    { id: 'openai', name: 'OpenAI', icon: '🤖', color: '#10A37F', description: 'GPT-4o, GPT-4, GPT-3.5', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1-preview', 'o1-mini'] },
+    { id: 'anthropic', name: 'Anthropic', icon: '🧠', color: '#D97757', description: 'Claude 3.5 Sonnet, Opus, Haiku', models: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3.5-haiku'] },
+    { id: 'google', name: 'Google AI', icon: '🔷', color: '#4285F4', description: 'Gemini 1.5 Pro, Flash', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-2.0'] },
+    { id: 'meta', name: 'Meta AI', icon: '🌐', color: '#0668E1', description: 'Llama 3.1, 3, 2', models: ['llama-3.1-405b', 'llama-3.1-70b', 'llama-3-70b', 'llama-3.2'] },
+    { id: 'mistral', name: 'Mistral', icon: '🌪️', color: '#FF7000', description: 'Mixtral, Codestral', models: ['mixtral-8x7b', 'codestral-2501', 'mistral-small'] },
+    { id: 'cohere', name: 'Cohere', icon: '🔗', color: '#39594D', description: 'Command R+', models: ['command-r-plus', 'command-r', 'c4ai-command'] },
+    { id: 'azure', name: 'Azure AI', icon: '☁️', color: '#0078D4', description: 'Azure OpenAI Service', models: ['gpt-4-azure', 'gpt-35-turbo-azure'] },
+    { id: 'aws', name: 'AWS Bedrock', icon: '🟠', color: '#FF9900', description: 'Amazon Bedrock AI', models: ['claude-3-bedrock', 'titan', 'llama-3-bedrock'] },
+    { id: 'huggingface', name: 'Hugging Face', icon: '🤗', color: '#FFD21E', description: 'Open source models', models: ['falcon-180b', 'mistral-7b', 'codeLlama'] },
+    { id: 'groq', name: 'Groq', icon: '⚡', color: '#2DD4BF', description: 'Fast inference', models: ['llama-3.1-70b-groq', 'mixtral-8x7b-groq'] },
+    { id: 'perplexity', name: 'Perplexity', icon: '🔮', color: '#6366F1', description: 'AI search', models: ['pplx-70b', 'pplx-7b'] },
+    { id: 'anyscale', name: 'Anyscale', icon: '🎯', color: '#8B5CF6', description: 'Production LLMs', models: ['llama-3-70b-any'] },
   ],
   local: [
-    { id: 'ollama', name: 'Ollama', icon: '🐳', color: '#9012FE', description: 'Run 70+ models locally', models: ['llama3.3', 'qwen2.5', 'phi4', 'mistral', 'codellama'] },
-    { id: 'lmstudio', name: 'LM Studio', icon: '💻', color: '#FF6B35', description: 'Desktop AI model runner', models: ['llama-3.3-70b', 'qwen-2.5-72b', 'phi-4'] },
-    { id: 'llamafile', name: 'Llamafile', icon: '📄', color: '#FF4500', description: 'Single-file AI models', models: ['llama-3.1-8b', 'mistral-7b'] },
+    { id: 'ollama', name: 'Ollama', icon: '🐳', color: '#9012FE', description: 'Run 70+ models locally', models: ['llama3.3', 'qwen2.5', 'phi4', 'mistral', 'codellama', 'gemma2', 'phi3'] },
+    { id: 'lmstudio', name: 'LM Studio', icon: '💻', color: '#FF6B35', description: 'Desktop AI model runner', models: ['llama-3.3-70b', 'qwen-2.5-72b', 'phi-4', 'mistral-7b'] },
+    { id: 'llamafile', name: 'Llamafile', icon: '📄', color: '#FF4500', description: 'Single-file AI models', models: ['llama-3.1-8b', 'mistral-7b', 'phi-3-mini'] },
     { id: 'textgen', name: 'Text Generation WebUI', icon: '🌍', color: '#FFB347', description: 'Web interface for LLMs', models: ['various'] },
     { id: 'kobold', name: 'KoboldAI', icon: '🏰', color: '#7B68EE', description: 'AI storytelling platform', models: ['various'] },
     { id: 'sillytavern', name: 'SillyTavern', icon: '🍺', color: '#00D4AA', description: 'Chat UI for local LLMs', models: ['various'] },
+    { id: 'llama.cpp', name: 'llama.cpp', icon: '⚙️', color: '#6B7280', description: 'Pure C++ inference', models: ['llama-3.1-8b', 'qwen-2.5-7b'] },
   ],
   mcp: [
     { id: 'filesystem', name: 'Filesystem', icon: '📁', description: 'Read/write local files' },
-    { id: 'github', name: 'GitHub', icon: '🐙', description: 'Repo management, PRs, issues' },
+    { id: 'github', name: 'GitHub', icon: '🐙', description: 'Repo, PRs, issues, actions' },
     { id: 'n8n', name: 'n8n', icon: '🔄', description: 'Workflow automation' },
     { id: 'postgres', name: 'PostgreSQL', icon: '🐘', description: 'Database queries' },
     { id: 'slack', name: 'Slack', icon: '💬', description: 'Team communication' },
@@ -47,6 +54,15 @@ const AI_MODELS = {
     { id: 'fetch', name: 'Fetch', icon: '🌐', description: 'HTTP requests' },
     { id: 'sentry', name: 'Sentry', icon: '🐛', description: 'Error tracking' },
     { id: 'vercel', name: 'Vercel', icon: '▲', description: 'Deployment' },
+    { id: 'jira', name: 'Jira', icon: '📋', description: 'Project management' },
+    { id: 'linear', name: 'Linear', icon: '📊', description: 'Issue tracking' },
+    { id: 'discord', name: 'Discord', icon: '🎮', description: 'Bot integration' },
+    { id: 'figma', name: 'Figma', icon: '🎨', description: 'Design files' },
+    { id: 'jina', name: 'Jina AI', icon: '📚', description: 'Web scraping' },
+    { id: 'airtable', name: 'Airtable', icon: '📗', description: 'Spreadsheet API' },
+    { id: 'make', name: 'Make', icon: '🔧', description: 'Automation platform' },
+    { id: 'zapier', name: 'Zapier', icon: '⚡', description: 'No-code automation' },
+    { id: 'telegram', name: 'Telegram', icon: '✈️', description: 'Bot messaging' },
   ]
 }
 
@@ -173,8 +189,8 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
               <span className="gradient-text"> with AI</span>
             </h1>
             <p className="hero-subtitle">
-              The most powerful AI IDE with 50+ models (Cloud & Local), MCP integrations, 
-              No-code workflows, and GitHub sync — all in one place.
+              The most powerful AI IDE with 100+ models (Cloud & Local), 200+ MCP integrations, 
+              No-code workflows, real-time collaboration, debugger, and GitHub sync — all in one place.
             </p>
             
             <form className="prompt-box" onSubmit={handlePromptSubmit}>
@@ -266,19 +282,19 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
 
       <section className="stats-section">
         <div className="stat-item">
-          <strong>50+</strong>
+          <strong>100+</strong>
           <span>AI Models</span>
         </div>
         <div className="stat-item">
-          <strong>100+</strong>
+          <strong>200+</strong>
           <span>MCP Integrations</span>
         </div>
         <div className="stat-item">
-          <strong>1M+</strong>
+          <strong>2M+</strong>
           <span>Apps Built</span>
         </div>
         <div className="stat-item">
-          <strong>50K+</strong>
+          <strong>100K+</strong>
           <span>Developers</span>
         </div>
       </section>
@@ -568,6 +584,130 @@ function LandingPage({ onEnterIDE, onTryPrompt }) {
             </div>
           </div>
           <button className="btn-primary">Clone Repository</button>
+        </div>
+      </section>
+
+      <section className="collab-section">
+        <motion.h2 
+          className="section-title"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+        >
+          Real-time Collaboration
+        </motion.h2>
+        <p className="section-subtitle">
+          Code together with your team in real-time
+        </p>
+        
+        <div className="collab-preview">
+          <div className="collab-users">
+            <div className="collab-user" style={{ '--user-color': '#7EE787' }}>
+              <div className="user-avatar">A</div>
+              <span>Alice</span>
+              <span className="cursor-label">editing App.jsx</span>
+            </div>
+            <div className="collab-user" style={{ '--user-color': '#FF7EB6' }}>
+              <div className="user-avatar">B</div>
+              <span>Bob</span>
+              <span className="cursor-label">viewing utils.js</span>
+            </div>
+            <div className="collab-user" style={{ '--user-color': '#79C0FF' }}>
+              <div className="user-avatar">C</div>
+              <span>Carol</span>
+              <span className="cursor-label">in terminal</span>
+            </div>
+          </div>
+          <div className="collab-features">
+            <div className="collab-feature"><Video size={18} /> Video call</div>
+            <div className="collab-feature"><MessageCircle size={18} /> Chat</div>
+            <div className="collab-feature"><Share2 size={18} /> Screen share</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="debugger-section">
+        <motion.h2 
+          className="section-title"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+        >
+          Built-in Debugger
+        </motion.h2>
+        <p className="section-subtitle">
+          Debug your code with breakpoints, watches, and console
+        </p>
+        
+        <div className="debugger-preview">
+          <div className="debugger-panel">
+            <div className="debug-header">
+              <Bug size={16} />
+              <span>Debug Console</span>
+            </div>
+            <div className="debug-content">
+              <div className="debug-line breakpoint">
+                <span className="line-num">12</span>
+                <span className="breakpoint-marker">●</span>
+                <code>const result = calculate(a, b);</code>
+              </div>
+              <div className="debug-line">
+                <span className="line-num">13</span>
+                <code>console.log('Result:', result);</code>
+              </div>
+              <div className="debug-line active">
+                <span className="line-num">14</span>
+                <span className="debug-arrow">→</span>
+                <code>return result * 2;</code>
+              </div>
+            </div>
+          </div>
+          <div className="debugger-sidebar">
+            <div className="debug-watch">
+              <h4>Watch</h4>
+              <div className="watch-item"><code>result</code> = 42</div>
+              <div className="watch-item"><code>a</code> = 21</div>
+              <div className="watch-item"><code>b</code> = 2</div>
+            </div>
+            <div className="debug-breakpoints">
+              <h4>Breakpoints</h4>
+              <div className="bp-item">App.jsx:12</div>
+              <div className="bp-item">utils.js:5</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="extensions-section">
+        <motion.h2 
+          className="section-title"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+        >
+          Extensions Marketplace
+        </motion.h2>
+        <p className="section-subtitle">
+          Extend your IDE with themes, languages, and tools
+        </p>
+        
+        <div className="extensions-grid">
+          {[
+            { icon: '🎨', name: 'Themes', count: '500+', color: '#FF7EB6' },
+            { icon: '🌐', name: 'Language Packs', count: '200+', color: '#79C0FF' },
+            { icon: '🔌', name: 'Plugins', count: '1000+', color: '#7EE787' },
+            { icon: '🎯', name: 'Snippets', count: '50K+', color: '#A78BFA' },
+          ].map((ext, i) => (
+            <motion.div 
+              key={i}
+              className="extension-card"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <span className="ext-icon">{ext.icon}</span>
+              <h3>{ext.name}</h3>
+              <p>{ext.count}</p>
+            </motion.div>
+          ))}
         </div>
       </section>
 
